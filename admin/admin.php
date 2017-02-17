@@ -523,8 +523,12 @@ function flamingo_load_inbound_admin() {
 		}
 
 		$labels = array_keys( $items[0]->fields );
-		$labels[] = __( 'Date', 'flamingo' );
-		echo flamingo_csv_row( $labels );
+
+		// Keep Labels (as defined by $item->fields) separate from the labels that
+		// will be used in the CSV. Otherwise, it will try to find a property for
+		// each label added in apply_filters.
+		$display_labels = apply_filters('flamingo_form_export_display_labels', $labels);
+		echo flamingo_csv_row($display_labels);
 
 		foreach ( $items as $item ) {
 			$row = array();
@@ -541,9 +545,10 @@ function flamingo_load_inbound_admin() {
 				$row[] = $col;
 			}
 
-			$row[] = get_post_time( 'c', true, $item->id );
-
-			echo "\r\n" . flamingo_csv_row( $row );
+			// Pass the display_labels through, in case you need to make changes to
+			// the data based on the position of a specific label.
+			$complete_row = apply_filters('flamingo_form_export_row_data', $row, $item, $display_labels);
+			echo "\r\n" . flamingo_csv_row( $complete_row );
 		}
 
 		exit();
